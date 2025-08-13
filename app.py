@@ -58,6 +58,41 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+async def handle_analysis(request: Request):
+    try:
+        form = await request.form()
+
+        # Gather uploaded files
+        uploads = [v for _, v in form.multi_items() if isinstance(v, UploadFile)]
+        if not uploads:
+            raise HTTPException(400, "Upload at least one file (.txt questions file is required).")
+
+        # Locate questions file
+        txt_files = [f for f in uploads if (f.filename or "").lower().endswith(".txt")]
+        if len(txt_files) != 1:
+            raise HTTPException(400, "Exactly one .txt questions file is required.")
+        questions_file = txt_files[0]
+        raw_questions = (await questions_file.read()).decode("utf-8")
+
+        # (Your LLM + data processing logic here)
+        # Example placeholder:
+        result = {"questions": raw_questions, "status": "Processed successfully"}
+
+        return JSONResponse(content=result)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.exception("Analysis failed")
+        raise HTTPException(500, detail=str(e))
+
+@app.post("/")
+async def root_post(request: Request):
+    return await handle_analysis(request)
+
+@app.post("/api")
+async def api_post(request: Request):
+    return await handle_analysis(request)
 
 @app.get("/", response_class=HTMLResponse)
 async def serve_frontend():
