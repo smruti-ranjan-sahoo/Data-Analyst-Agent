@@ -58,7 +58,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-async def handle_analysis(request: Request):
+async def handle_analysis(request: requests):
     try:
         form = await request.form()
 
@@ -730,3 +730,4 @@ async def analyze_get_info():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))
+
